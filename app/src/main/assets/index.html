@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8"><title>Đọc &amp; Nghe EPUB</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{--bg:#fafaf7;--fg:#1d1d1b;--mut:#8a8a85;--ac:#2f6f5e;--hl:#ffe9a8;--bd:#e4e4de;--fs:19px;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme=dark]{--bg:#121413;--fg:#d9d9d4;--mut:#7d807b;--ac:#6cc0a8;--hl:#4a4020;--bd:#262926;color-scheme:dark}
+:root[data-theme=sepia]{--bg:#f3e9d6;--fg:#43382a;--mut:#8c7b64;--ac:#8a5a2b;--hl:#f0d48a;--bd:#e0d2b8}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:16px system-ui,sans-serif}
+section{height:100%;display:flex;flex-direction:column}
+header,footer{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--bd)}
+footer{border:0;border-top:1px solid var(--bd);justify-content:center;gap:10px;padding:10px}
+h1{font-size:20px;margin:0;flex:1}
+button,.btn,select{font:inherit;color:var(--fg);background:none;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;cursor:pointer}
+.btn{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+#ct{flex:1;text-align:center;font-size:14px;color:var(--mut);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#list{flex:1;overflow:auto;padding:8px 12px}
+.bk{display:flex;align-items:center;gap:10px;padding:14px 4px;border-bottom:1px solid var(--bd)}
+.bk div{flex:1;min-width:0}.bk b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bk small{color:var(--mut)}
+.empty{color:var(--mut);text-align:center;padding:48px 24px;line-height:1.6}
+#txt{flex:1;overflow:auto;padding:16px;font-size:var(--fs);line-height:1.8;scroll-behavior:smooth}
+#txt>*{max-width:38em;margin:0 auto .9em}
+#txt h3{font-size:1.15em;text-align:center}
+.s{border-radius:4px;cursor:pointer}.s.on{background:var(--hl)}
+footer button{min-width:46px;font-size:18px}
+#pp{background:var(--ac);color:var(--bg);border-color:var(--ac);min-width:64px}
+.md{position:fixed;inset:0;background:#0007;display:flex;align-items:flex-end;z-index:9}
+.sh{background:var(--bg);width:100%;max-height:80%;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sh h2{margin:0 0 12px;font-size:18px}
+.row{display:flex;align-items:center;gap:10px;margin:12px 0}.row label{width:84px;color:var(--mut);font-size:14px}.row select,.row input[type=range]{flex:1;min-width:0}
+.row input:not([type=range]){flex:1;min-width:0;font:inherit;padding:8px;border:1px solid var(--bd);border-radius:10px;background:none;color:var(--fg)}
+#as.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+#ab{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--bd);font-size:14px;color:var(--mut)}#ab input{flex:1;min-width:0}
+.toc{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--bd);border-radius:0}.toc.cur{color:var(--ac);font-weight:600}
+:root{--bg:#000;--fg:#e6e6e6;--mut:#888;--ac:#fff;--bd:#222;--pg:#f4ecd8;--ink:#2b2418;--hl:#f0d48a;--lh:1.8;--ff:Georgia,'Noto Serif',serif;color-scheme:dark}
+:root[data-paper=white]{--pg:#fff;--ink:#111;--hl:#ffe9a8}
+:root[data-paper=grey]{--pg:#dcdcd6;--ink:#1c1c1a;--hl:#f0e08a}
+:root[data-paper=night]{--pg:#0e0e0e;--ink:#b4b4ae;--hl:#3a3418}
+html,body{background:#000}
+button,select,.row input:not([type=range]){background:#000;border-color:#333}
+.btn,#pp,#as.on{background:#fff;color:#000;border-color:#fff}
+input[type=range]{accent-color:#fff}
+.sh{background:#0b0b0b;border-top:1px solid #222}
+#txt{background:var(--pg);color:var(--ink);font-family:var(--ff);line-height:var(--lh);padding:20px 18px}
+</style>
+</head><body>
+<section id="lib">
+<header><h1>Thư viện</h1><label class="btn">＋ Thêm EPUB<input id="f" type="file" accept=".epub,application/epub+zip" hidden></label></header>
+<div id="list"></div>
+</section>
+<section id="rd" hidden>
+<header><button id="bk">←</button><div id="ct"></div><button id="tc">☰</button><button id="as" title="Tự cuộn">⇣</button><button id="sg">Aa</button></header>
+<main id="txt"></main>
+<div id="ab" hidden><span>Tự cuộn</span><input id="asr" type="range" min="1" max="10" step="1"><span><b id="asv"></b>/10</span></div>
+<footer><button id="pc">⏮</button><button id="ps">◀</button><button id="pp">▶ Nghe</button><button id="ns">▶</button><button id="nc">⏭</button></footer>
+</section>
+<div id="md" class="md" hidden><div class="sh"><h2 id="mt"></h2><div id="mb"></div><button id="mc" style="width:100%;margin-top:8px">Đóng</button></div></div>
+
+<script src="jszip.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),ss=window.speechSynthesis;
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const st=Object.assign({paper:'sepia',ff:"Georgia,'Noto Serif',serif",lh:1.8,theme:null,fs:19,rate:1,voice:'',eng:'device',va:'',vt:'',vc:'sg_male_anhtu_yt_24k-pre',sc:3},LS.get('cfg',{}));
+const save=()=>LS.set('cfg',st);
+const applyCfg=()=>{document.documentElement.style.setProperty('--fs',st.fs+'px');const r=document.documentElement;r.style.setProperty('--lh',st.lh);r.style.setProperty('--ff',st.ff);r.dataset.paper=st.paper};applyCfg();
+
+/* ---- IndexedDB: lưu sách ---- */
+const db=new Promise((res,rej)=>{try{const r=indexedDB.open('epubs',1);r.onupgradeneeded=()=>r.result.createObjectStore('b',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+const idb=async(mode,f)=>{try{const d=await db;return await new Promise((res,rej)=>{const t=d.transaction('b',mode),q=f(t.objectStore('b'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})}catch(e){return null}};
+
+/* ---- Đọc EPUB ---- */
+const xml=(s,t='application/xml')=>new DOMParser().parseFromString(s,t);
+const norm=p=>{const o=[];p.split('/').forEach(s=>{if(s==='..')o.pop();else if(s&&s!=='.')o.push(s)});return o.join('/')};
+const dec=s=>{try{return decodeURIComponent(s)}catch(e){return s}};
+async function parse(buf,id){
+  const z=await JSZip.loadAsync(buf),txt=async p=>{const f=z.file(p);return f?f.async('string'):''};
+  const opfPath=xml(await txt('META-INF/container.xml')).querySelector('rootfile').getAttribute('full-path');
+  const dir=opfPath.includes('/')?opfPath.slice(0,opfPath.lastIndexOf('/')+1):'';
+  const opf=xml(await txt(opfPath)),man={};
+  opf.querySelectorAll('manifest > item').forEach(i=>man[i.getAttribute('id')]={h:norm(dir+dec(i.getAttribute('href'))),t:i.getAttribute('media-type')||'',p:i.getAttribute('properties')||''});
+  const spine=[...opf.querySelectorAll('spine > itemref')].map(r=>man[r.getAttribute('idref')]).filter(m=>m&&/html/.test(m.t)).map(m=>m.h);
+  if(!spine.length)throw new Error('empty');
+  const g=n=>(opf.getElementsByTagName(n)[0]||{}).textContent||'';
+  const names={},add=(base,href,t)=>{const p=norm(base+dec((href||'').split('#')[0]));t=(t||'').replace(/\s+/g,' ').trim();if(t&&!names[p])names[p]=t};
+  const nav=Object.values(man).find(m=>m.p.includes('nav')),ncx=Object.values(man).find(m=>/ncx/.test(m.t));
+  if(nav){const d=xml(await txt(nav.h),'text/html'),b=nav.h.includes('/')?nav.h.slice(0,nav.h.lastIndexOf('/')+1):'';d.querySelectorAll('nav a').forEach(a=>add(b,a.getAttribute('href'),a.textContent))}
+  else if(ncx){const d=xml(await txt(ncx.h)),b=ncx.h.includes('/')?ncx.h.slice(0,ncx.h.lastIndexOf('/')+1):'';d.querySelectorAll('navPoint').forEach(n=>{const l=n.querySelector('navLabel'),c=n.querySelector('content');if(l&&c)add(b,c.getAttribute('src'),l.textContent)})}
+  return{id,z,spine,names,title:g('dc:title')||'Không tên',lang:g('dc:language')||'vi'};
+}
+async function chapter(i){
+  const f=book.z.file(book.spine[i]);if(!f)return[];
+  const d=xml(await f.async('string'),'text/html');
+  d.querySelectorAll('script,style,svg,img,rt').forEach(e=>e.remove());
+  let bl=[...d.body.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,pre')].map(e=>({h:/^H/.test(e.tagName),t:e.textContent.replace(/\s+/g,' ').trim()})).filter(b=>b.t);
+  if(!bl.length)bl=d.body.textContent.split(/\n+/).map(t=>t.trim()).filter(Boolean).map(t=>({h:0,t}));
+  return bl;
+}
+function split(t){
+  const m=t.match(/[^.!?…。！？]+(?:[.!?…。！？]+["”’»)\]]*|$)\s*/g)||[t],o=[];
+  m.forEach(x=>{x=x.trim();while(x.length>220){let k=x.lastIndexOf(', ',200);if(k<60)k=x.lastIndexOf(' ',200);if(k<1)k=200;o.push(x.slice(0,k+1).trim());x=x.slice(k+1).trim()}if(x)o.push(x)});
+  return o;
+}
+
+/* ---- Trình đọc ---- */
+let book=null,ch=0,cur=0,S=[],playing=false,tok=0,voices=[],sleepT=0,sleepEnd=false,lock=null,keep=null,va=null,vcache=new Map();
+const chName=i=>book.names[book.spine[i]]||('Phần '+(i+1));
+function prog(){if(book)LS.set('p:'+book.id,{c:ch,s:cur,n:book.spine.length})}
+async function loadCh(i,s=0){
+  ch=i;vcache.clear();const bl=await chapter(i),el=$('#txt');el.innerHTML='';S=[];
+  bl.forEach(b=>{const p=document.createElement(b.h?'h3':'p');split(b.t).forEach(t=>{const e=document.createElement('span');e.className='s';e.textContent=t+' ';e.dataset.i=S.length;S.push({t,e,h:b.h});p.appendChild(e)});if(S.length)S[S.length-1].pe=1;el.appendChild(p)});
+  if(!S.length){const p=document.createElement('p');p.className='empty';p.textContent='(Phần này không có chữ)';el.appendChild(p)}
+  $('#ct').textContent=chName(i);cur=Math.min(s,Math.max(0,S.length-1));
+  mark(false);if(s>0&&S[cur])S[cur].e.scrollIntoView({block:'start',behavior:'instant'});else el.scrollTop=0;prog();
+}
+function mark(scroll=true){
+  document.querySelectorAll('.s.on').forEach(e=>e.classList.remove('on'));
+  const s=S[cur];if(!s)return;s.e.classList.add('on');
+  if(scroll)s.e.scrollIntoView({block:'center'});prog();
+}
+function pickVoice(){
+  let v=voices.find(v=>v.name===st.voice);
+  if(!v){const vi=voices.filter(v=>/^vi/i.test(v.lang.replace('_','-')));v=vi.find(v=>/google/i.test(v.name))||vi[0]}
+  return v;
+}
+const clean=t=>t.replace(/[“”"«»()\[\]*_#]/g,' ').replace(/\s+[—–-]\s+/g,', ').replace(/…/g,'...').replace(/\s+/g,' ').trim();
+const gap=i=>{const s=S[i],c=s.t.slice(-1);return s.h?900:s.pe?650:/[?!]/.test(c)?420:c==='…'?500:/[;:]/.test(c)?250:c===','?150:320};
+function vfetch(i){
+  if(i>=S.length)return;
+  if(!vcache.has(i))vcache.set(i,fetch('https://api.vbee.vn/v1/tts',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+st.vt,'App-Id':st.va},body:JSON.stringify({text:clean(S[i].t).slice(0,300),mode:'sync',voiceCode:st.vc,outputFormat:'mp3',bitrate:64,speed:Math.min(1.9,st.rate)})}).then(async r=>{if(!r.ok){let m=r.status;try{m=(await r.json()).error.message}catch(e){}throw new Error(m)}return URL.createObjectURL(await r.blob())}));
+  return vcache.get(i);
+}
+function say(i){
+  if(i>=S.length)return nextCh(true);
+  cur=i;mark();
+  const my=++tok,s=S[i],next=()=>setTimeout(()=>{if(my===tok&&playing)say(i+1)},gap(i));
+  if(window.Native){
+    const stt=Native.status();if(stt!=='ok'){alert(stt==='loading'?'Bộ đọc Google đang khởi động, hãy thử lại sau vài giây.':stt==='noengine'?'Máy chưa có “Dịch vụ giọng nói của Google”. App sẽ mở trang cài đặt.':'Chưa có dữ liệu giọng tiếng Việt (vi-VN). App sẽ mở trang tải giọng.');if(stt!=='loading')Native.installVoice();stop();return}
+    Native.speak(JSON.stringify(S.slice(i).map((x,k)=>{const t=clean(x.t);return{t:t,g:gap(i+k),p:x.h?.92:/\?$/.test(t)?1.08:/^[“"—-]/.test(x.t)?1.04:1,r:x.h?.9:/!$/.test(t)?1.04:1}})),i,st.rate,st.voice,(book&&book.title)||'');
+    return;
+  }
+  if(st.eng==='vbee'){
+    try{keep&&keep.pause()}catch(e){}
+    if(!va)va=new Audio();
+    const p=vfetch(i);vfetch(i+1);vfetch(i+2);
+    p.then(url=>{if(my!==tok)return;va.src=url;va.onended=next;return va.play()}).catch(e=>{vcache.delete(i);if(my===tok){stop();alert('Vbee báo lỗi: '+e.message)}});
+    return;
+  }
+  const t=clean(s.t),u=new SpeechSynthesisUtterance(t),v=pickVoice();
+  if(v){u.voice=v;u.lang=v.lang}else u.lang='vi-VN';
+  u.rate=s.h?st.rate*.9:/!$/.test(t)?st.rate*1.04:st.rate;
+  u.pitch=s.h?.92:/\?$/.test(t)?1.08:/^[“"—-]/.test(s.t)?1.04:1;
+  u.onend=next;
+  u.onerror=e=>{if(my===tok&&playing&&!/interrupted|canceled/.test(e.error))next()};
+  if(ss.speaking||ss.pending)ss.cancel();
+  setTimeout(()=>{if(my===tok)ss.speak(u)},40);
+}
+async function nextCh(auto){
+  if(sleepEnd&&auto){stop();sleepEnd=false;return}
+  if(ch+1<book.spine.length){await loadCh(ch+1);if(auto&&playing)say(0)}else stop();
+}
+async function play(){
+  autoOff();playing=true;ui();
+  try{if(!window.Native&&!keep){const n=8000,b=new DataView(new ArrayBuffer(44+n)),w=(o,s)=>[...s].forEach((c,i)=>b.setUint8(o+i,c.charCodeAt(0)));
+    w(0,'RIFF');b.setUint32(4,36+n,true);w(8,'WAVEfmt ');b.setUint32(16,16,true);b.setUint16(20,1,true);b.setUint16(22,1,true);b.setUint32(24,8000,true);b.setUint32(28,8000,true);b.setUint16(32,1,true);b.setUint16(34,8,true);w(36,'data');b.setUint32(40,n,true);for(let i=0;i<n;i++)b.setUint8(44+i,128);
+    keep=new Audio(URL.createObjectURL(new Blob([b],{type:'audio/wav'})));keep.loop=true}
+    await keep.play()}catch(e){}
+  try{lock=await navigator.wakeLock.request('screen')}catch(e){}
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:chName(ch),artist:book.title})}catch(e){}
+  say(cur);
+}
+function stop(){
+  playing=false;tok++;ss.cancel();ui();try{va&&va.pause()}catch(e){}try{window.Native&&Native.stop()}catch(e){}
+  try{keep&&keep.pause()}catch(e){}try{lock&&lock.release()}catch(e){}
+  clearTimeout(sleepT);
+}
+function jump(i){cur=Math.max(0,Math.min(S.length-1,i));playing?say(cur):mark()}
+function ui(){$('#pp').textContent=playing?'⏸':'▶ Nghe'}
+try{const ms=navigator.mediaSession;ms.setActionHandler('play',play);ms.setActionHandler('pause',stop);ms.setActionHandler('nexttrack',()=>jump(cur+1));ms.setActionHandler('previoustrack',()=>jump(cur-1))}catch(e){}
+
+async function openBook(b){
+  stop();book=b;LS.set('last',b.id);$('#lib').hidden=true;$('#rd').hidden=false;
+  const p=LS.get('p:'+b.id,{c:0,s:0});await loadCh(Math.min(p.c,b.spine.length-1),p.s);
+}
+async function showLib(){
+  stop();book=null;LS.set('last',null);$('#rd').hidden=true;$('#lib').hidden=false;
+  const all=(await idb('readonly',s=>s.getAll()))||[],el=$('#list');
+  if(!all.length){el.innerHTML='<div class="empty">Chưa có sách nào.<br>Bấm “＋ Thêm EPUB” để chọn file từ máy.</div>';return}
+  el.innerHTML=all.map(r=>{const p=LS.get('p:'+r.id,null),pc=p?Math.round(p.c/p.n*100):0;
+    return`<div class="bk"><div data-id="${r.id.replace(/"/g,'&quot;')}" class="o"><b></b><small>Đã đọc ${pc}%</small></div><button data-del="${r.id.replace(/"/g,'&quot;')}">✕</button></div>`}).join('');
+  [...el.querySelectorAll('.o b')].forEach((b,i)=>b.textContent=all[i].title);
+}
+$('#f').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const id=f.name+'|'+f.size,b=await parse(await f.arrayBuffer(),id);
+    await idb('readwrite',s=>s.put({id,title:b.title,blob:f}));await openBook(b)}
+  catch(err){alert('Không đọc được file này. Hãy chọn file .epub không bị khóa DRM.')}
+};
+$('#list').onclick=async e=>{
+  const d=e.target.closest('[data-id]'),x=e.target.closest('[data-del]');
+  if(x){if(confirm('Xóa sách này khỏi thư viện?')){await idb('readwrite',s=>s.delete(x.dataset.del));showLib()}return}
+  if(d){const r=await idb('readonly',s=>s.get(d.dataset.id));if(r)try{await openBook(await parse(await r.blob.arrayBuffer(),r.id))}catch(err){alert('Không mở được sách.')}}
+};
+$('#bk').onclick=()=>{autoOff();showLib()};
+$('#txt').onclick=e=>{const s=e.target.closest('.s');if(s){cur=+s.dataset.i;playing=true;ui();play()}};
+$('#pp').onclick=()=>playing?stop():play();
+$('#ps').onclick=()=>jump(cur-1);$('#ns').onclick=()=>jump(cur+1);
+$('#pc').onclick=async()=>{if(ch>0){await loadCh(ch-1);if(playing)say(0)}};
+$('#nc').onclick=()=>nextCh(false).then(()=>{if(playing)say(0)});
+
+/* ---- Menu: mục lục, cài đặt ---- */
+const modal=(t,h)=>{$('#mt').textContent=t;$('#mb').innerHTML=h;$('#md').hidden=false};
+$('#mc').onclick=()=>$('#md').hidden=true;
+$('#md').onclick=e=>{if(e.target.id==='md')$('#md').hidden=true};
+$('#tc').onclick=()=>{
+  modal('Mục lục','');const mb=$('#mb');
+  book.spine.forEach((p,i)=>{const b=document.createElement('button');b.className='toc'+(i===ch?' cur':'');b.textContent=chName(i);b.onclick=async()=>{$('#md').hidden=true;await loadCh(i);if(playing)say(0)};mb.appendChild(b)});
+  const c=mb.querySelector('.cur');if(c)setTimeout(()=>c.scrollIntoView({block:'center'}),0);
+};
+$('#sg').onclick=()=>{
+  loadV();const l='vi',vs=[...voices].sort((a,b)=>(b.lang.toLowerCase().startsWith(l)?1:0)-(a.lang.toLowerCase().startsWith(l)?1:0));
+  const cv=pickVoice();
+  modal('Cài đặt',`
+  <div class="row"><label>Giọng đọc</label><select id="v">${vs.length?vs.map(v=>`<option value="${v.name}"${cv&&cv.name===v.name?' selected':''}>${v.d||v.name}${v.d?'':' ('+v.lang+')'}</option>`).join(''):'<option>Chưa có giọng</option>'}</select></div>
+  ${vs.length?'':'<p class="empty" style="padding:8px">Máy chưa có giọng đọc. Vào Cài đặt Android › Hỗ trợ tiếp cận › Chuyển văn bản thành giọng nói › chọn “Dịch vụ giọng nói của Google” › Cài đặt dữ liệu giọng nói › Tiếng Việt.</p>'}
+  ${window.Native?'<div class="row"><label>Giọng VN</label><button id="iv" style="flex:1">Cài / chọn giọng Google tiếng Việt</button></div>':''}
+  <div class="row"><label>Tốc độ <span id="rv">${st.rate}×</span></label><input id="r" type="range" min="0.75" max="2" step="0.05" value="${st.rate}"></div>
+  <div class="row"><label>Cỡ chữ <span id="fv">${st.fs}</span></label><input id="fz" type="range" min="14" max="30" value="${st.fs}"></div>
+  <div class="row"><label>Nền trang</label><select id="th"><option value="sepia">Giấy</option><option value="white">Trắng</option><option value="grey">Xám</option><option value="night">Đêm</option></select></div>
+  <div class="row"><label>Font</label><select id="ff"><option value="Georgia,'Noto Serif',serif">Serif</option><option value="Roboto,system-ui,sans-serif">Sans</option><option value="'Courier New',monospace">Mono</option><option value="cursive">Viết tay</option></select></div>
+  <div class="row"><label>Giãn dòng <span id="lv"></span></label><input id="lh" type="range" min="1.3" max="2.6" step="0.1"></div>
+  <div class="row"><label>Hẹn giờ</label><select id="sl"><option value="0">Tắt</option><option value="15">15 phút</option><option value="30">30 phút</option><option value="60">60 phút</option><option value="e">Hết phần này</option></select></div>`);
+  $('#th').value=st.paper;$('#ff').value=st.ff;$('#lh').value=st.lh;$('#lv').textContent=st.lh;
+  $('#v').onchange=e=>{st.voice=e.target.value;save();if(playing)say(cur)};
+  if($('#iv'))$('#iv').onclick=()=>Native.installVoice();
+  $('#r').oninput=e=>{st.rate=+e.target.value;vcache.clear();try{window.Native&&Native.setRate(st.rate)}catch(x){}$('#rv').textContent=st.rate+'×';save()};
+  $('#fz').oninput=e=>{st.fs=+e.target.value;$('#fv').textContent=st.fs;applyCfg();save()};
+  $('#th').onchange=e=>{st.paper=e.target.value;applyCfg();save()};
+  $('#ff').onchange=e=>{st.ff=e.target.value;applyCfg();save()};
+  $('#lh').oninput=e=>{st.lh=+e.target.value;$('#lv').textContent=st.lh;applyCfg();save()};
+  $('#sl').onchange=e=>{clearTimeout(sleepT);sleepEnd=e.target.value==='e';if(+e.target.value)sleepT=setTimeout(stop,e.target.value*60000)};
+};
+const loadV=()=>{if(window.Native){try{voices=JSON.parse(Native.voices()).map(v=>({name:v.n,lang:v.l,d:v.d}))}catch(e){voices=[]}}else voices=ss?ss.getVoices():[]};
+if(ss&&!window.Native){loadV();ss.onvoiceschanged=loadV}
+/* ---- Tự cuộn trang ---- */
+let auto=false,pos=0,last=0,touching=false,endHold=0,loading=false;
+function autoOff(){auto=false;$('#as').classList.remove('on');$('#ab').hidden=true;$('#txt').style.scrollBehavior=''}
+function autoOn(){if(playing)stop();auto=true;const el=$('#txt');el.style.scrollBehavior='auto';pos=el.scrollTop;last=0;endHold=0;$('#as').classList.add('on');$('#ab').hidden=false;requestAnimationFrame(tick)}
+function tick(t){
+  if(!auto)return;const el=$('#txt');
+  if(touching||loading)pos=el.scrollTop;
+  else if(last){
+    if(Math.abs(el.scrollTop-pos)>2)pos=el.scrollTop;
+    pos+=st.sc*14*(t-last)/1000;el.scrollTop=pos;
+    if(el.scrollTop+el.clientHeight>=el.scrollHeight-2){
+      if(!endHold)endHold=t;
+      if(t-endHold>1500){endHold=0;if(ch+1<book.spine.length){loading=true;loadCh(ch+1).then(()=>{pos=0;loading=false})}else autoOff()}
+    }else endHold=0;
+  }
+  last=t;requestAnimationFrame(tick);
+}
+$('#as').onclick=()=>auto?autoOff():autoOn();
+$('#asr').value=st.sc;$('#asv').textContent=st.sc;
+$('#asr').oninput=e=>{st.sc=+e.target.value;$('#asv').textContent=st.sc;save()};
+$('#txt').addEventListener('touchstart',()=>touching=true,{passive:true});
+['touchend','touchcancel'].forEach(n=>$('#txt').addEventListener(n,()=>touching=false,{passive:true}));
+addEventListener('pagehide',prog);
+window.goBack=()=>{if(!$('#md').hidden){$('#md').hidden=true;return true}if(!$('#rd').hidden){autoOff();showLib();return true}return false};
+window.onNativeSentence=i=>{if(!playing||i>=S.length)return;cur=i;mark()};
+window.onNativeEnd=()=>{if(playing)nextCh(true)};
+document.addEventListener('visibilitychange',prog);
+let sct=0;$('#txt').addEventListener('scroll',()=>{clearTimeout(sct);sct=setTimeout(()=>{if(playing||!S.length)return;const top=$('#txt').getBoundingClientRect().top+10;let a=0,b=S.length-1;while(a<b){const m=(a+b)>>1;if(S[m].e.getBoundingClientRect().bottom<top)a=m+1;else b=m}cur=a;prog()},300)},{passive:true});
+const lastId=LS.get('last',null);
+showLib().then(async()=>{if(!lastId)return;const r=await idb('readonly',s=>s.get(lastId));if(r)try{await openBook(await parse(await r.blob.arrayBuffer(),r.id))}catch(e){}});
+</script></body></html>
